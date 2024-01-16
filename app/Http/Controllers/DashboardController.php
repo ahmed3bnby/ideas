@@ -8,20 +8,26 @@ use Illuminate\Http\Request;
 class DashboardController extends Controller
 {
     public function index()
-    {
-        $ideas = Idea::orderby('created_at','DESC');
+{
+    $ideas = Idea::orderBy('created_at', 'DESC');
 
-            if(request()->has('search')){
+    // Check if the 'search' parameter is present
+    if (request()->filled('search')) {
+        $ideas = $ideas->where('content', 'like', '%' . request()->input('search') . '%');
 
-                $ideas = $ideas->where('content','like','%' . request()->get('search','') . '%');
-
-            }
-
-        return view('dashboard',[
-
-            'ideas' => $ideas->paginate(5)
-
-        ]);
-
+        if ($ideas->count() == 0) {
+            // No results found, flash a message
+            session()->now('message', 'No results found!');
+        } else {
+            // Results found, flash a message
+            session()->now('message', $ideas->count() . ' Results Found');
+        }
     }
+
+    return view('dashboard', [
+        'ideas' => $ideas->paginate(5)
+    ]);
+}
+
+
 }
